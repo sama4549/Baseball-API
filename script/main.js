@@ -201,20 +201,33 @@ function pitcherDetails(e) {
 
     // Obtain Advanced Pitching Stats
     obtainPitchingStats(selectedPlayer).then(response => {
-        console.log('response', response);
-        selectedPlayerName = response.sport_pitching_tm.queryResults.row;
+        console.log('Testing async' , response);
+        return 'test';
     });
     
     // Create Modal
-    let modal = document.getElementById('modal');
-    modal.classList.add('modal-active');
-    let modalInformation = document.createElement('div');
-    modalInformation.classList.add('modal-information');
-    modal.appendChild(modalInformation);
+    async function createModal() {
+        console.log('calling');
+        let result = await obtainPitchingStats();
+        console.log('This is the response from await', result);
+        let modal = document.getElementById('modal');
+        modal.classList.add('modal-active');
+        let modalInformation = document.createElement('div');
+        modalInformation.classList.add('modal-information');
+        modal.appendChild(modalInformation);
+    
+        modalInformation.innerHTML = `
+            <h1>${selectedPlayerName}</h1>
+            <table>
+                <tr>
+                    <td>Picher ERA: </td>
+                </tr>
+            </table>
+        `;
+    }
 
-    modalInformation.innerHTML = `
-        <h1>${selectedPlayerName}</h1>
-    `;
+    createModal();
+    
 
     listenForClose();
 }

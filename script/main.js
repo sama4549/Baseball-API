@@ -200,16 +200,31 @@ function pitcherDetails(e) {
     // Obtain 40 Man Roster Stats
 
     // Obtain Advanced Pitching Stats
-    obtainPitchingStats(selectedPlayer).then(response => {
-        console.log('Testing async' , response);
-        return 'test';
-    });
+    // obtainPitchingStats(selectedPlayer).then(response => {
+    //     console.log('Testing async' , response);
+    //     return 'test';
+    // });
+
+    async function obtainAdvancedStats() {
+        let stats = await obtainPitchingStats(selectedPlayer);
+        console.log('Testing async' , stats);
+        return stats;
+    }
+
     
     // Create Modal
     async function createModal() {
-        console.log('calling');
-        let result = await obtainPitchingStats();
-        console.log('This is the response from await', result);
+        let playerStat = await obtainAdvancedStats();
+        console.log(playerStat.sport_pitching_tm.queryResults.row);
+
+        //Organize Player Stats
+        const pitcherEra = playerStat.sport_pitching_tm.queryResults.row.era;
+        const pitcherWhip = playerStat.sport_pitching_tm.queryResults.row.whip;
+        const inningsPitched = playerStat.sport_pitching_tm.queryResults.row.ip;
+        const gamesPlayed = playerStat.sport_pitching_tm.queryResults.row.g;
+        const saves = playerStat.sport_pitching_tm.queryResults.row.sv;
+        const strikeOuts = playerStat.sport_pitching_tm.queryResults.row.so;
+
         let modal = document.getElementById('modal');
         modal.classList.add('modal-active');
         let modalInformation = document.createElement('div');
@@ -220,13 +235,27 @@ function pitcherDetails(e) {
             <h1>${selectedPlayerName}</h1>
             <table>
                 <tr>
-                    <td>Picher ERA: </td>
+                    <td>ERA: ${pitcherEra}</td>
+                </tr>
+                <tr>
+                    <td>WHIP: ${pitcherWhip}</td>
+                </tr>
+                <tr>
+                    <td>InningsPitched: ${inningsPitched}</td>
+                </tr>
+                <tr>
+                    <td>GamesPlayed: ${gamesPlayed}</td>
+                </tr>
+                <tr>
+                    <td>Saves: ${saves}</td>
+                </tr>
+                <tr>
+                    <td>Strikeouts: ${strikeOuts}</td>
                 </tr>
             </table>
         `;
     }
-
-    createModal();
+    createModal()
     
 
     listenForClose();
@@ -234,7 +263,6 @@ function pitcherDetails(e) {
 
 // Event Listener to back out of modal mode
 function listenForClose() {
-    console.log('2 seconds have passed');
     document.querySelector('body').addEventListener('click', e => {
         let clickedTarget = e.target.className;
         switch(clickedTarget) {

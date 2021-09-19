@@ -51,7 +51,7 @@ function obtainPitchers(data) {
 
         // Generate Player Status
         let playerStatus = document.createElement('td');
-        let statusTitle
+        let statusTitle;
         switch(status) {
             case 'A':
                 statusTitle = 'Active';
@@ -63,7 +63,7 @@ function obtainPitchers(data) {
                 statusTitle = 'Maternity Leave';
                 break;
             case 'RM':
-                statusTitle = 'No official stats';
+                statusTitle = 'Reassigned';
                 break;
             default:
                 statusTitle = status;
@@ -175,13 +175,28 @@ function obtainPitchingStats(playerId) {
         }
     })
     .then(data => {
-        console.log(playerId, data);
         return data;
     })
     .catch(err => {
         console.log(err);
     });
+}
 
+function obtainPitchingInfo(playerId) {
+    return fetch(`http://lookup-service-prod.mlb.com/json/named.player_info.bam?sport_code='mlb'&player_id=${playerId}`)
+    .then(response => {
+        if(response.status !== 200) {
+            console.log('Something went wrong');
+        } else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        return data;
+    })
+    .catch(err => {
+        console.log(err);
+    })
 }
 
 // Function to execute on click
@@ -197,13 +212,7 @@ function pitcherDetails(e) {
         selectedPlayerName = e.target.parentElement.childNodes[0].innerText;
     }
 
-    // Obtain 40 Man Roster Stats
-
-    // Obtain Advanced Pitching Stats
-    // obtainPitchingStats(selectedPlayer).then(response => {
-    //     console.log('Testing async' , response);
-    //     return 'test';
-    // });
+    // Obtain Pitching Stats
 
     async function obtainAdvancedStats() {
         let stats = await obtainPitchingStats(selectedPlayer);
@@ -211,19 +220,56 @@ function pitcherDetails(e) {
         return stats;
     }
 
+    // Obtain Pitching Info
+    async function obtainPlayerData() {
+        let data = await obtainPitchingInfo(selectedPlayer);
+        console.log('Testing another async' , data);
+        return data;
+    }
+
+
     
     // Create Modal
     async function createModal() {
         let playerStat = await obtainAdvancedStats();
-        console.log(playerStat.sport_pitching_tm.queryResults.row);
+        let playerInfo = await obtainPlayerData();
+        console.log('player Stats' , playerStat.sport_pitching_tm.queryResults.row);
+        console.log('Player Info' , playerInfo.player_info.queryResults.row);
+        if (playerStat.sport_pitching_tm.queryResults.row === undefined) {
+            console.log('No player Stats');
+            let modal = document.getElementById('modal');
+            modal.classList.add('modal-active');
+            let modalInformation = document.createElement('div');
+            modalInformation.classList.add('modal-information');
+            modal.appendChild(modalInformation);
+            modalInformation.innerHTML = 'No Stats for this player currently';
+            return;
+        }
 
         //Organize Player Stats
-        const pitcherEra = playerStat.sport_pitching_tm.queryResults.row.era;
-        const pitcherWhip = playerStat.sport_pitching_tm.queryResults.row.whip;
-        const inningsPitched = playerStat.sport_pitching_tm.queryResults.row.ip;
-        const gamesPlayed = playerStat.sport_pitching_tm.queryResults.row.g;
-        const saves = playerStat.sport_pitching_tm.queryResults.row.sv;
-        const strikeOuts = playerStat.sport_pitching_tm.queryResults.row.so;
+        const playerStats = [
+            {pitcherEra: playerStat.sport_pitching_tm.queryResults.row.era},
+            {pitcherWhip: playerStat.sport_pitching_tm.queryResults.row.whip},
+            {inningsPitched: playerStat.sport_pitching_tm.queryResults.row.ip},
+            {gamesPlayed: playerStat.sport_pitching_tm.queryResults.row.g},
+            {saves: playerStat.sport_pitching_tm.queryResults.row.sv},
+            {strikeOuts: playerStat.sport_pitching_tm.queryResults.row.so},
+            {walks: playerStat.sport_pitching_tm.queryResults.row.bb},
+            {strikeOutsPerNineInnings: playerStat.sport_pitching_tm.queryResults.row.k9}
+        ];
+
+        // Organize Player Info
+        const playerInformation = [
+            {age: playerInfo.player_info.queryResults.row.age},
+            {bats: playerInfo.player_info.queryResults.row.bats},
+            {birthCountry: playerInfo.player_info.queryResults.row.birth_country},
+            {college: playerInfo.player_info.queryResults.row.college},
+            {throws: playerInfo.player_info.queryResults.row.throws},
+            {heightFeet: playerInfo.player_info.queryResults.row.height_feet},
+            {heightInches: playerInfo.player_info.queryResults.row.height_inches},
+            {status: playerInfo.player_info.queryResults.row.status},
+            {weight: playerInfo.player_info.queryResults.row.weight}
+        ];
 
         let modal = document.getElementById('modal');
         modal.classList.add('modal-active');
@@ -232,27 +278,75 @@ function pitcherDetails(e) {
         modal.appendChild(modalInformation);
     
         modalInformation.innerHTML = `
-            <h1>${selectedPlayerName}</h1>
-            <table>
-                <tr>
-                    <td>ERA: ${pitcherEra}</td>
-                </tr>
-                <tr>
-                    <td>WHIP: ${pitcherWhip}</td>
-                </tr>
-                <tr>
-                    <td>InningsPitched: ${inningsPitched}</td>
-                </tr>
-                <tr>
-                    <td>GamesPlayed: ${gamesPlayed}</td>
-                </tr>
-                <tr>
-                    <td>Saves: ${saves}</td>
-                </tr>
-                <tr>
-                    <td>Strikeouts: ${strikeOuts}</td>
-                </tr>
-            </table>
+            <div class="table-container">
+                <div class="modal-header-container">
+                    <h1>${selectedPlayerName}</h1>
+                </div>
+                <div class="modal-content-container">
+                    <div class="modal-table-left">
+                        <h1>Game Stats</h1>
+                        <table>
+                            <tr>
+                                <td>ERA: ${playerStats[0].pitcherEra}</td>
+                            </tr>
+                            <tr>
+                                <td>WHIP: ${playerStats[1].pitcherWhip}</td>
+                            </tr>
+                            <tr>
+                                <td>InningsPitched: ${playerStats[2].inningsPitched}</td>
+                            </tr>
+                            <tr>
+                                <td>GamesPlayed: ${playerStats[3].gamesPlayed}</td>
+                            </tr>
+                            <tr>
+                                <td>Saves: ${playerStats[4].saves}</td>
+                            </tr>
+                            <tr>
+                                <td>Strikeouts: ${playerStats[5].strikeOuts}</td>
+                            </tr>
+                            <tr>
+                                <td>Walks: ${playerStats[6].walks}</td>
+                            </tr>
+                            <tr>
+                                <td>Strikeouts Per 9 Innings: ${playerStats[7].strikeOutsPerNineInnings}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="modal-table-right">
+                        <h1>Personal Stats</h1>
+                        <table>
+                            <tr>
+                                <td>Age: ${playerInformation[0].age}</td>
+                            </tr>
+                            <tr>
+                                <td>Bats: ${playerInformation[1].bats}</td>
+                            </tr>
+                            <tr>
+                                <td>Birth Country: ${playerInformation[2].birthCountry}</td>
+                            </tr>
+                            <tr>
+                                <td>College: ${playerInformation[3].college}</td>
+                            </tr>
+                            <tr>
+                                <td>Throws: ${playerInformation[4].throws}</td>
+                            </tr>
+                            <tr>
+                                <td>Height: ${playerInformation[5].heightFeet}' ${playerInformation[6].heightInches}"</td>
+                            </tr>
+                            <tr>
+                                <td>Weight: ${playerInformation[7].weight}</td>
+                            </tr>
+                            <tr>
+                                <td>Status: ${playerInformation[8].status}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-link-container">
+                    <a target="_blank" href="http://www.google.com/search?q=${selectedPlayerName}"><h1>Click Here to research player</h1></a>
+                </div>
+            </div>
         `;
     }
     createModal()

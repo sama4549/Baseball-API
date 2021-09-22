@@ -20,7 +20,7 @@ $twins-primary: #002B5C;
 $twins-secondary: #D31145;
 $twins-terciary: #B9975B;
 
-// Other Universal Markup
+//Universal Markup
 a {
     text-decoration: none;
     color: inherit;
@@ -68,7 +68,7 @@ body {
         .nav-selection {
             display: flex;
             justify-content: space-between;
-            width: 40%;
+            width: 20%;
 
             a:hover {
                 color: $secondary-color-hover;

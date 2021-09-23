@@ -1,3 +1,7 @@
+//Imports
+import { obtainBattingStats, obtainPitchingStats, obtainPlayerInfo, colorEra } from './playerfunctions.js';
+import listenForClose from './modal.js';
+
 // Event Listeners
 window.addEventListener('DOMContentLoaded', fetchData);
 
@@ -167,42 +171,6 @@ function obtainPitchers(data) {
     });
 }
 
-// Obtain Pitcher Statistics
-function obtainPitchingStats(playerId) {
-
-    return fetch(`http://lookup-service-prod.mlb.com/json/named.sport_pitching_tm.bam?league_list_id='mlb'&game_type='R'&season='2021'&player_id='${playerId}'`)
-    .then(response => {
-        if(response.status !== 200) {
-            console.log('Something went wrong');
-        } else {
-            return response.json()
-        }
-    })
-    .then(data => {
-        return data;
-    })
-    .catch(err => {
-        console.log(err);
-    });
-}
-
-function obtainPlayerInfo(playerId) {
-    return fetch(`http://lookup-service-prod.mlb.com/json/named.player_info.bam?sport_code='mlb'&player_id=${playerId}`)
-    .then(response => {
-        if(response.status !== 200) {
-            console.log('Something went wrong');
-        } else {
-            return response.json()
-        }
-    })
-    .then(data => {
-        return data;
-    })
-    .catch(err => {
-        console.log(err);
-    })
-}
-
 ////////////////////////////////////////////BATTERS///////////////////////////////////////////////////
 
 // Obtain List of Batters
@@ -319,24 +287,6 @@ function obtainBatters(data) {
             batterTable.childNodes[3].appendChild(newRow);
         });
     })
-}
-
-function obtainBattingStats(playerId) {
-
-    return fetch(`http://lookup-service-prod.mlb.com/json/named.sport_career_hitting.bam?league_list_id='mlb'&game_type='R'&player_id=${playerId}`)
-    .then(response => {
-        if(response.status !== 200) {
-            console.log('Something went wrong');
-        } else {
-            return response.json()
-        }
-    })
-    .then(data => {
-        return data;
-    })
-    .catch(err => {
-        console.log(err);
-    });
 }
 
 
@@ -648,45 +598,8 @@ function BatterDetails(e) {
             </div>
         `;
     }
-    createModal()
+    createModal();
     
 
     listenForClose();
-}
-
-// Event Listener to back out of modal mode
-function listenForClose() {
-    document.querySelector('body').addEventListener('click', e => {
-        let clickedTarget = e.target.className;
-        switch(clickedTarget) {
-            case 'modal-active':
-                document.getElementById('modal').classList.remove('modal-active');
-                document.querySelector('.modal-information').remove();
-                break;
-            default:
-                console.log('not success');
-        }
-    })
-}
-
-// Determined color of ERA
-function colorEra(eraString) {
-    let era = parseFloat(eraString);
-    switch (true) {
-        case era <= 2.00:
-            return 'Darkgreen';
-        case era > 2.00 && era <= 3.00:
-            return 'Green';
-        case era > 3.00 && era <= 4.00:
-            return 'Lightgreen';
-        case era > 4.00 && era <= 5.00:
-            return 'Orange';
-        case era > 5.00 && era <= 6.00:
-            return 'orangered';
-        case era > 6.00:
-            return 'red';
-        default:
-            console.log('Result Defaulted... Something went wrong');
-    }
-
 }
